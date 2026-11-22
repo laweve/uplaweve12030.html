@@ -5013,8 +5013,7 @@ async function grantAdminAccess(u, btn) {
         setLoading(btn, false);
     }
 
-    const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const pad = n => String(n).padStart(2, "0");
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];    const pad = n => String(n).padStart(2, "0");
     const isoOf = (y, m, d) => y + "-" + pad(m + 1) + "-" + pad(d);
     const todayIso = () => { const t = new Date(); return isoOf(t.getFullYear(), t.getMonth(), t.getDate()); };
     function normIso(v) {
@@ -5028,7 +5027,7 @@ async function grantAdminAccess(u, btn) {
 const NARROW = matchMedia("(max-width: 520px)");
 function prettyDate(iso, short) {
     const [y, m, d] = String(iso).split("-").map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: short ? "short" : "long", day: "numeric", year: "numeric" });
+    return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 function longDate(v, short) {
     const s = String(v || "").trim();
@@ -5529,7 +5528,7 @@ function prettyTime(t) { t = normTime(t); if (!t) return ""; const x = t24to12(t
     };
     const show = () => {
         const t = binPoll ? binPoll.closes : 0;
-        input.value = t ? new Date(t).toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+        input.value = t ? new Date(t).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : "";
         syncFields();
     };
     const commit = () => { if (binPoll) binPoll.closes = stamp(); show(); binDirty(); };
