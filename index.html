@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>try{var t=localStorage.getItem("eve1Theme");if(t==="classic"||t==="night")document.documentElement.setAttribute("data-theme",t);}catch(e){}
     try{var b=localStorage.getItem("eve1Bg"),u=localStorage.getItem("eve1BgImg");if(u&&/^data:image\//.test(u))document.documentElement.style.setProperty("--user-bg",'url("'+u+'")');else if(b==="custom")b="both";document.documentElement.setAttribute("data-bg",["none","dots","waves","both","custom"].indexOf(b)>-1?b:"both");}catch(e){document.documentElement.setAttribute("data-bg","both");}</script>
+    <script>try{if(sessionStorage.getItem("userEmail")&&sessionStorage.getItem("token"))document.documentElement.classList.add("boot-app");}catch(e){}</script>
     <script>try{var ac=localStorage.getItem("eve1Accent");if(/^(ocean|olive|amber|violet)$/.test(ac))document.documentElement.setAttribute("data-accent",ac);}catch(e){}</script>
     <link rel="icon" 
     type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2376090c'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Segoe UI,Arial,sans-serif' font-weight='800' font-size='27' fill='%23ffffff'%3EEVE%3C/text%3E%3C/svg%3E">
@@ -3264,6 +3265,16 @@ html[data-theme="night"] .cal-cell .cal-chip.period { background: #ffffff; borde
 /* Status dot inside a period circle: same contrast rules as the filled Deadline square */
 .cal-cell .cal-chip.period .st-glow { --g: var(--g-for-dark); --ic: var(--ic-for-dark); }
 html[data-theme="night"] .cal-cell .cal-chip.period .st-glow { --g: var(--g-for-light); --ic: var(--ic-for-light); }
+
+/* ===== No flicker on refresh while signed in ===== */
+html.boot-app .stage,
+html.boot-app .bg,
+html.boot-app .waves { display: none !important; }
+html.boot-app .app,
+html.boot-app .section,
+html.boot-app .ann-card,
+html.boot-app .course-row,
+html.boot-app .topbar { animation: none !important; }
         
     </style>
     
@@ -4327,6 +4338,7 @@ const ADMIN_SECTIONS = ["bin", "directory", "addcourse", "hiddencourses", "dibss
         sessionStorage.removeItem("token");
         sessionStorage.removeItem("isAdmin");
         sessionStorage.removeItem("section");
+        document.documentElement.classList.remove("boot-app");
         currentEmail = null;
         try { sessionStorage.removeItem(courseCacheKey()); } catch (e) {}
         pins = new Set();
