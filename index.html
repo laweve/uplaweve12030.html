@@ -3275,6 +3275,16 @@ html.boot-app .section,
 html.boot-app .ann-card,
 html.boot-app .course-row,
 html.boot-app .topbar { animation: none !important; }
+
+/* Closed pop-up must never catch the mouse */
+.foot-pop:not(.show),
+.foot-pop:not(.show) .pop-row,
+.foot-pop:not(.show) .pop-row.active,
+.foot-pop:not(.show) .pop-opt,
+.foot-pop:not(.show) .pop-dot {
+    visibility: hidden;
+    pointer-events: none;
+}
         
     </style>
     
