@@ -3190,7 +3190,19 @@ html[data-theme="night"] .ann-ic { color: var(--accent-text); background: var(--
     .ann-ic { width: 28px; height: 28px; }
     .ann-ic svg { width: 14px; height: 14px; }
 }
-        
+
+/* ===== Pinned / Archive buttons: color-filled in every theme ===== */
+.btn.ghost.archive-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+}
+.btn.ghost.archive-btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--on-accent);
+}
+
     </style>
     
 </head>
@@ -6163,7 +6175,6 @@ function renderAnnModalStatus(a) {
     h.textContent = "";
     h.appendChild(infoIcons(a));
 }
-    }
 
     /* ===== Author / Edited / Read-by icons + pop-up ===== */
     const IC_AUTHOR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
