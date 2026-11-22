@@ -829,8 +829,7 @@ html[data-theme="night"] .bg {
 }
 
 .modal-head .ann-titlewrap { display: flex; align-items: center; gap: 10px; }
-.modal-head .ann-titlewrap .st-btn { margin-top: 0; }
-
+        
 /* ---------- Site background ---------- */
 .app {
     background:
@@ -1492,9 +1491,7 @@ html[data-theme="night"] .cal-chip.period .st-glow { --g: var(--g-for-light); --
     .st-glow { --glow: 0 0 5px 1px color-mix(in srgb, var(--g) 70%, transparent), 0 0 12px 3px color-mix(in srgb, var(--g) 35%, transparent); }
 }
 
-.st-btn { flex: none; width: 16px; height: 16px; margin-top: 0; display: inline-grid; place-items: center; color: var(--ic); background: var(--g); border-radius: 50%; box-shadow: var(--glow); }
-.ann-title .st-btn { margin-left: 8px; vertical-align: -2px; }
-        
+.st-btn { flex: none; width: 16px; height: 16px; margin-top: 0; display: inline-grid; place-items: center; color: var(--ic); background: var(--g); border-radius: 50%; box-shadow: var(--glow); }        
 
 .fmt-bar .st-ico { width: 34px; height: 34px; min-width: 0; padding: 0; display: grid; place-items: center; color: var(--ic); background: var(--g); border: 0; border-radius: 50%; cursor: pointer; opacity: 1; filter: none; transition: box-shadow .2s, transform .2s; }
 .fmt-bar .st-ico:hover { background: var(--g); opacity: 1; transform: scale(1.08); }
@@ -1626,9 +1623,7 @@ html[data-theme="night"] .dibs-ic.ok:disabled, html[data-theme="night"] .dibs-ic
 /* ===== FIX 2: glowing circle stays right after the Topic text; NEW tag goes to the far right ===== */
 .ann-card .ann-titlewrap .new-tag { margin-left: auto; white-space: nowrap; }
 .ann-card .ann-titlewrap .ann-title { display: block; }
-.ann-title .st-btn { margin-left: 8px; vertical-align: -2px; }
 .ann-card .ann-titlewrap { align-items: center; }
-.ann-card .ann-titlewrap .st-btn { flex: none; margin-left: 0; }
 
 /* ===== FIX 3: "Add to course" pop-up: title stays on one line, scrolls sideways, code stays on the right ===== */
 #link-modal-list .link-row { min-width: 0; }
@@ -1879,11 +1874,9 @@ html[data-theme="night"] .cmt-att-go { color: #fff; }
         -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
     }
     .ann-card .ann-titlewrap .ann-title::-webkit-scrollbar { display: none; }
-    .ann-card .ann-titlewrap .st-btn,
     .ann-card .ann-titlewrap .new-tag { flex: none; position: static; margin-left: 0; }
     .ann-card .ann-titlewrap .new-tag { align-self: center; }
     .ann-card .ann-titlewrap .ann-title::-webkit-scrollbar { display: none; }
-    .ann-card .ann-titlewrap .st-btn { flex: none; margin: 0; }
     .ann-card .ann-titlewrap .new-tag { flex: none; margin-left: 0; align-self: center; }
     .ann-card .ann-top .icon-btn { margin-left: -4px; }
 
@@ -1913,7 +1906,6 @@ html[data-theme="night"] .cmt-att-go { color: #fff; }
     scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
 }
 .ann-card .ann-titlewrap .ann-title::-webkit-scrollbar { display: none; }
-.ann-card .ann-titlewrap .st-btn { flex: none; margin: 0; position: static; }
 .ann-card .ann-titlewrap .new-tag {
     flex: none; margin-left: auto; position: static; align-self: center; white-space: nowrap;
 }
@@ -2610,12 +2602,6 @@ html[data-theme="night"] .ann-card.past:hover { border-left-color: #ffffff; }
     width: 11px; height: 11px;
 }
 
-/* Pop-up: title and circle on one row, circle vertically centered with the title */
-#ann-modal-title { display: flex; align-items: center; gap: 8px; }
-#ann-modal-title .st-btn { flex: none; margin: 0; vertical-align: baseline; }
-
-/* Only the circle pulses: its own glow grows a few pixels and fades.
-   No pseudo-element, no positioning, so nothing else can pulse. */
 .ann-card .st-btn,
 #ann-modal .st-btn {
     animation: stPulse 1.8s ease-out infinite;
@@ -3053,8 +3039,8 @@ html[data-theme="night"] .field.invalid #b-editor ~ label { color: #ff6b6b; }
 
 /* Glowing circle: part of the topic string, right after the last letter */
 .ann-card .ann-titlewrap .ann-title { padding: 5px 8px 5px 0; margin: -3px 0; }
-.ann-card .ann-titlewrap .ann-title .st-btn { display: inline-grid; margin: 0 0 0 8px; vertical-align: -1px; }
-#ann-modal-title { display: block; }
+.ann-card .ann-titlewrap .ann-title .st-btn { margin: 0 0 0 8px; }
+#ann-modal-title .st-btn { margin: 0 0 0 8px; }
 #ann-modal-title .st-btn { display: inline-grid; margin: 0 0 0 8px; vertical-align: middle; }
 
 /* Comment attachment icons */
@@ -3287,10 +3273,11 @@ html.boot-app .topbar { animation: none !important; }
 }
 
 /* ===== Glowing status circle: vertically centered with the topic text ===== */
+
 .ann-card .ann-titlewrap .ann-title .st-btn,
 #ann-modal-title .st-btn {
     display: inline-block;
-    vertical-align: 0.14em;   /* raises the circle to the middle of the letters/digits */
+    vertical-align: 0.14em;
 }
         
     </style>
@@ -3919,7 +3906,6 @@ html.boot-app .topbar { animation: none !important; }
         
 <div class="ann-titlewrap">
     <h3 id="ann-modal-title" class="ann-title"></h3>
-    <span id="ann-modal-st"></span>
 </div>
     <div class="ann-badge-row"><span id="ann-modal-badge" class="badge"></span><span id="ann-modal-ic" class="ann-ic-wrap"></span></div>
     </div>
@@ -6084,7 +6070,6 @@ pre.className = "file-text";
     function openAnnModal(a, fromCourse) {
         annModalFromCourse = !!fromCourse;
         $("ann-modal-title").textContent = a.title;
-        $("ann-modal-st").textContent = "";
         const sb = stBadge(a.mode);
         if (sb) { $("ann-modal-title").appendChild(document.createTextNode("\u2060")); $("ann-modal-title").appendChild(sb); }
         $("ann-modal-badge").textContent = a.course;
