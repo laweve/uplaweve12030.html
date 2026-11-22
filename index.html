@@ -3203,6 +3203,54 @@ html[data-theme="night"] .ann-ic { color: var(--accent-text); background: var(--
     color: var(--on-accent);
 }
 
+/* ===== All hollow buttons are color-filled ===== */
+.btn.ghost:not(.submitted) {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+}
+.btn.ghost:not(.submitted):hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--on-accent);
+}
+.btn.ghost.loading::before { border-color: rgba(255,255,255,.4); border-top-color: var(--on-accent); }
+
+/* Log Out / Delete Account in Light mode (Classic and Night were already filled) */
+html:not([data-theme]) .drawer-foot .btn,
+html:not([data-theme]) .drawer-foot .btn-danger {
+    background: var(--accent); color: var(--on-accent); border-color: var(--accent);
+}
+html:not([data-theme]) .drawer-foot .btn:hover:not(:disabled),
+html:not([data-theme]) .drawer-foot .btn-danger:hover {
+    background: var(--accent-hover); color: var(--on-accent); border-color: var(--accent-hover);
+}
+
+/* Delete Account in the user pop-up */
+.btn.um-delete { background: var(--err); border-color: var(--err); color: var(--surface); }
+.btn.um-delete:hover:not(:disabled) { background: var(--err); border-color: var(--err); color: var(--surface); filter: brightness(1.12); }
+
+/* File / link buttons (Cases, Digests, attachments, ...) */
+.attach-btn { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.attach-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
+
+/* ===== Pop-ups never scroll the page behind them ===== */
+.modal, .modal-card, .cm-body, .um-scroll, .poll-body, .link-list, .readers-list,
+.preview-content, .info-ver-box, .cm-names, .datepop, .sdrop-list, .mention-list, .pdrawer, .pbody {
+    overscroll-behavior: contain;
+}
+/* lock the page itself while any pop-up or side panel is open */
+body:has(.modal:not(.hidden)),
+body:has(.datepop:not(.hidden)),
+body:has(.drawer.open),
+body:has(.pdrawer.open) {
+    overflow: hidden;
+}
+
+/* ===== Invisible scroll bars (scrolling still works) ===== */
+* { scrollbar-width: none !important; -ms-overflow-style: none; }
+*::-webkit-scrollbar, ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+
     </style>
     
 </head>
@@ -8853,8 +8901,10 @@ document.addEventListener("pointerdown", e => { if (!e.target.closest("#foot-men
     showSection(b.dataset.section); closeMenu();
     closeLinkDialog();
 }));
+    
 window.addEventListener("popstate", (e) => {
-    if (!currentEmail) return;                 // on the login screen, leave browser behavior alone
+    if (modalPop(e)) return;
+    if (!currentEmail) return; // on the login screen, leave browser behavior alone
     closeMenu(); closeProfile();
     const s = e.state && e.state.eve1;
     if (s && s !== "root") showSection(s, true);
@@ -9257,6 +9307,54 @@ document.addEventListener("click", closeSwatches);
             if (i !== carIdx) { carIdx = i; carUpdate(); }
         });
     });
+
+    /* ===== Back button closes the top-most pop-up ===== */
+const modalStack = [];
+let ignorePops = 0;
+const MODAL_CLOSERS = {
+    "ann-modal": () => closeAnnModal(),
+    "course-modal": () => closeCourseModal(),
+    "user-modal": () => closeUser(),
+    "file-modal": () => closeFileModal(),
+    "readers-modal": () => closeReaders(),
+    "info-modal": () => closeInfo(),
+    "link-modal": () => closeLinkModal(),
+    "members-modal": () => closeMembers(),
+    "dibs-modal": () => closeDibsEdit(),
+    "hl-modal": () => closeLinkDialog(),
+    "confirm-modal": () => $("confirm-no").click(),
+    "del-modal": () => closeDelete(),
+    "bg-modal": () => closeBgModal(),
+    "poll-form": () => closePoll()
+};
+const modalOpen = el => !el.classList.contains("hidden");
+function closeModalEl(el) {
+    if (el.classList.contains("datepop")) pickers.forEach(p => p.close());
+    else if (MODAL_CLOSERS[el.id]) MODAL_CLOSERS[el.id]();
+    if (modalOpen(el)) el.classList.add("hidden");   // safety net
+}
+// Returns true when the back press was used up by a pop-up
+function modalPop(e) {
+    if (ignorePops > 0) { ignorePops--; return true; }
+    if (modalStack.length) { closeModalEl(modalStack.pop()); return true; }
+    if (e.state && e.state.eve1 === "modal") { history.back(); return true; }   // leftover entry: skip it
+    return false;
+}
+const modalObserver = new MutationObserver(muts => {
+    muts.forEach(m => {
+        const el = m.target, open = modalOpen(el), i = modalStack.indexOf(el);
+        if (open && i < 0) {
+            modalStack.push(el);
+            try { history.pushState({ eve1: "modal" }, ""); } catch (err) {}
+        } else if (!open && i >= 0) {
+            modalStack.splice(i, 1);
+            // closed with a button, not with Back: remove the history entry we added
+            if (history.state && history.state.eve1 === "modal") { ignorePops++; history.back(); }
+        }
+    });
+});
+document.querySelectorAll(".modal, .datepop").forEach(el =>
+    modalObserver.observe(el, { attributes: true, attributeFilter: ["class"] }));
 
     const saved = sessionStorage.getItem("userEmail");
     const savedToken = sessionStorage.getItem("token");
