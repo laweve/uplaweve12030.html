@@ -3136,6 +3136,60 @@ html[data-theme="night"] .ann-ic:hover { background: #d6d2cc; }
 
 .ann-badge-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; max-width: 100%; }
 .ann-badge-row .badge { flex: none; }
+
+/* ===== Info icons (Posted by / Edited by / Read by): refined ===== */
+.ann-ic-wrap { gap: 8px; }
+.ann-ic {
+    position: relative;
+    width: 30px; height: 30px; padding: 0; flex: none;
+    display: inline-grid; place-items: center;
+    color: var(--accent-text);
+    background: var(--accent-soft);
+    border: 1px solid var(--badge-line);
+    border-radius: 50%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    /* short, specific transitions so hover feels instant */
+    transition: background-color .12s ease-out, color .12s ease-out,
+                border-color .12s ease-out, box-shadow .12s ease-out, transform .12s ease-out;
+}
+.ann-ic svg { width: 15px; height: 15px; pointer-events: none; }
+@media (hover: hover) {
+    .ann-ic:hover {
+        color: var(--on-accent);
+        background: var(--accent);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+}
+.ann-ic:active { transform: scale(.92); box-shadow: none; }
+.ann-ic:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+
+/* reader count badge on the eye */
+.ann-ic-n {
+    position: absolute; top: -6px; right: -6px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    display: grid; place-items: center;
+    font-size: .6rem; font-weight: 800; line-height: 1;
+    color: var(--on-accent); background: var(--accent);
+    border: 2px solid var(--surface); border-radius: 999px;
+    pointer-events: none;
+    transition: background-color .12s ease-out, color .12s ease-out;
+}
+@media (hover: hover) {
+    .ann-ic:hover .ann-ic-n { background: var(--surface); color: var(--accent-text); }
+}
+
+/* cancel the old grey styles in every theme */
+html[data-theme="night"] .ann-ic { color: var(--accent-text); background: var(--accent-soft); border-color: var(--badge-line); }
+@media (hover: hover) {
+    html[data-theme="night"] .ann-ic:hover { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+}
+@media (max-width: 520px) {
+    .ann-ic { width: 28px; height: 28px; }
+    .ann-ic svg { width: 14px; height: 14px; }
+}
         
     </style>
     
@@ -5990,6 +6044,7 @@ pre.className = "file-text";
 
         $("ann-modal").classList.remove("hidden");
         openAnnId = a.id;
+        $("ann-modal-ic").dataset.sig = "";   // force a fresh build when the popup opens
         renderAnnModalStatus(a);
         if (!a.myRead) setAnnStatus(a, { read: true });
         loadComments(a);
@@ -6099,10 +6154,15 @@ pre.className = "file-text";
         return wrap;
     }
     
-    function renderAnnModalStatus(a) {
-        const h = $("ann-modal-ic");
-        h.textContent = "";
-        h.appendChild(infoIcons(a));
+function renderAnnModalStatus(a) {
+    const h = $("ann-modal-ic");
+    // only rebuild when something actually changed, so hovering is never interrupted
+    const sig = a.id + "|" + (a.edited || "") + "|" + (a.readBy || []).length;
+    if (h.dataset.sig === sig && h.firstChild) return;
+    h.dataset.sig = sig;
+    h.textContent = "";
+    h.appendChild(infoIcons(a));
+}
     }
 
     /* ===== Author / Edited / Read-by icons + pop-up ===== */
@@ -6110,20 +6170,22 @@ pre.className = "file-text";
     const IC_CLOCK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
     const IC_EYE    = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 
-    function infoIcons(a) {
-        const wrap = mk("div", "ann-ic-wrap");
-        const add = (kind, label, svg) => {
-            const b = mk("button", "ann-ic"); b.type = "button";
-            b.title = label; b.setAttribute("aria-label", label); b.innerHTML = svg;
-            b.addEventListener("click", e => { e.stopPropagation(); openInfo(kind, a); });
-            b.addEventListener("keydown", e => e.stopPropagation());
-            wrap.appendChild(b);
-        };
-        add("posted", "Posted by", IC_AUTHOR);
-        if (a.edited) add("edited", "Edited by", IC_CLOCK);
-        if ((a.readBy || []).length) add("read", "Read by", IC_EYE);
-        return wrap;
-    }
+function infoIcons(a) {
+    const wrap = mk("div", "ann-ic-wrap");
+    const fresh = () => annList.find(x => x.id === a.id) || a;   // always open the latest data
+    const add = (kind, label, svg, count) => {
+        const b = mk("button", "ann-ic"); b.type = "button";
+        b.title = label; b.setAttribute("aria-label", label); b.innerHTML = svg;
+        if (count) b.appendChild(mk("span", "ann-ic-n", count > 99 ? "99+" : String(count)));
+        b.addEventListener("click", e => { e.stopPropagation(); openInfo(kind, fresh()); });
+        b.addEventListener("keydown", e => e.stopPropagation());
+        wrap.appendChild(b);
+    };
+    add("posted", "Posted by", IC_AUTHOR);
+    if (a.edited) add("edited", "Edited by", IC_CLOCK);
+    if ((a.readBy || []).length) add("read", "Read by", IC_EYE, a.readBy.length);
+    return wrap;
+}
 
     function openInfo(kind, a) {
     const body = $("info-body"); body.textContent = "";
