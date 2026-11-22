@@ -3251,6 +3251,20 @@ body:has(.pdrawer.open) {
 * { scrollbar-width: none !important; -ms-overflow-style: none; }
 *::-webkit-scrollbar, ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 
+/* ===== Calendar: Period = color-filled circle (legend + dates, all modes) ===== */
+
+/* Legend */
+html .cal-legend .k.pd { background: var(--accent); border: 0; border-radius: 50%; }
+html[data-theme="night"] .cal-legend .k.pd { background: #ffffff; border: 0; }
+
+/* Calendar dates */
+.cal-cell .cal-chip.period { background: var(--accent); border: 0; border-radius: 50%; }
+html[data-theme="night"] .cal-cell .cal-chip.period { background: #ffffff; border: 0; }
+
+/* Status dot inside a period circle: same contrast rules as the filled Deadline square */
+.cal-cell .cal-chip.period .st-glow { --g: var(--g-for-dark); --ic: var(--ic-for-dark); }
+html[data-theme="night"] .cal-cell .cal-chip.period .st-glow { --g: var(--g-for-light); --ic: var(--ic-for-light); }
+        
     </style>
     
 </head>
