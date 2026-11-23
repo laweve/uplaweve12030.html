@@ -3627,6 +3627,7 @@ html.boot-app .topbar { animation: none !important; }
         <input type="text" id="bm-search" placeholder="Search block matters" autocomplete="off">
     </div>
     <div class="ann-tools">
+        <select id="bm-filter" aria-label="Filter by Block Matter"></select>
         <div class="ann-right">
             <button type="button" class="btn sm ghost archive-btn" id="bm-pinned-toggle">Pinned</button>
             <button type="button" class="btn sm ghost archive-btn" id="bm-archive-toggle">Archive</button>
@@ -4387,7 +4388,7 @@ const ADMIN_SECTIONS = ["bin", "directory", "addcourse", "hiddencourses", "dibss
         pending = null;
         resetProfileState();
         resetRequestForm();
-        annList = []; annShowArchive = false; annShowPinned = false; openAnnId = ""; annFilter = ""; annSearchTerm = ""; carIdx = 0; dlSel = todayIso(); mentionUsers = []; mentionSel = []; repoPhotos = {}; photosTriedFor = ""; resetBinForm();
+        annList = []; bmFilter = ""; annShowArchive = false; annShowPinned = false; openAnnId = ""; annFilter = ""; annSearchTerm = ""; carIdx = 0; dlSel = todayIso(); mentionUsers = []; mentionSel = []; repoPhotos = {}; photosTriedFor = ""; resetBinForm();
         dibsList = []; dsysArchive = false; officerData = null; ofState = null; $("org-chart").textContent = ""; $("off-term").classList.add("hidden"); $("of-fields").textContent = ""; $("of-archive").textContent = "";        
         courseList = []; courseOpen = ""; courseSearchTerm = ""; $("course-search").value = ""; closeCourseModal(); resetCourseForm();
         isAdmin = false;
@@ -8230,7 +8231,8 @@ const BLOCK_LABEL = {}; BLOCKS.forEach(([v, l]) => { BLOCK_LABEL[v] = l; });
 })();
 $("b-block").addEventListener("change", binDirty);
     
-["dl-month", "dl-year", "ann-filter", "c-sem", "c-ay", "d-course", "dibs-e-by", "b-course", "b-block", "of-sem", "of-ay"].forEach(id => enhanceSelect($(id)));    function applyTheme(t) {
+["dl-month", "dl-year", "ann-filter", "bm-filter", "c-sem", "c-ay", "d-course", "dibs-e-by", "b-course", "b-block", "of-sem", "of-ay"].forEach(id => enhanceSelect($(id)));
+function applyTheme(t) {
         if (t !== "classic" && t !== "night") t = "light";
         if (t === "light") document.documentElement.removeAttribute("data-theme");
         else document.documentElement.setAttribute("data-theme", t);
@@ -9433,39 +9435,50 @@ document.querySelectorAll(".modal, .datepop").forEach(el =>
     modalObserver.observe(el, { attributes: true, attributeFilter: ["class"] }));
 
 /* ===== BLOCK MATTERS ===== */
-let bmShowArchive = false, bmShowPinned = false, bmSearchTerm = "";
+let bmShowArchive = false, bmShowPinned = false, bmSearchTerm = "", bmFilter = "";
 const BM_GROUPS = [["external", "External"], ["internal", "Internal"], ["academic", "Academic"], ["wellness", "Wellness"], ["social", "Social Media"]];
 
-function bmVisible(block) {
+function bmVisible() {
     return annList.filter(a => {
-        if (a.block !== block) return false;
+        if (!a.block) return false;
+        if (bmFilter && a.block !== bmFilter) return false;
         if (!!a.myArchived !== bmShowArchive) return false;
         if (bmShowPinned && !pins.has(a.id)) return false;
         if (!bmShowPinned && !bmShowArchive && pins.has(a.id)) return false;
         if (!bmSearchTerm) return true;
         return isFuzzyMatch([a.title, a.course, a.message, a.author].join(" "), bmSearchTerm);
-    });
+    }).sort((x, y) => (pins.has(y.id) ? 1 : 0) - (pins.has(x.id) ? 1 : 0));
 }
+
 function renderBlockMatters() {
     const box = $("bm-list"); if (!box) return;
     box.textContent = "";
     const all = annList.filter(a => a.block);
     $("bm-archive-toggle").textContent = bmShowArchive ? "\u2190 Back to block matters" : "Archive (" + all.filter(a => a.myArchived).length + ")";
     $("bm-pinned-toggle").textContent = bmShowPinned ? "\u2190 Back to block matters" : "Pinned (" + all.filter(a => pins.has(a.id) && !a.myArchived).length + ")";
-    BM_GROUPS.forEach(([key, label]) => {
-        const list = bmVisible(key), nodes = [];
-        if (bmSearchTerm && list.length) collOpen["bm_" + key] = true;
-        if (!list.length) {
-            nodes.push(mk("p", "repo-count", bmSearchTerm ? "No matching announcements." : (bmShowArchive ? "Nothing archived." : (bmShowPinned ? "Nothing pinned." : "No announcements yet."))));
-        } else {
-            const wrap = mk("div", "bm-list");
-            list.forEach(a => wrap.appendChild(annCard(a)));
-            nodes.push(wrap);
-        }
-        box.appendChild(collapsible("bm_" + key, label, list.length, nodes));
-    });
+
+    const fs = $("bm-filter");
+    fs.textContent = "";
+    const o0 = mk("option", "", "All Topics"); o0.value = ""; fs.appendChild(o0);
+    BM_GROUPS.forEach(([v, l]) => { const o = mk("option", "", l); o.value = v; fs.appendChild(o); });
+    fs.value = bmFilter;
+    if (fs._sync) fs._sync();
+
+    const list = bmVisible();
+    if (!list.length) {
+        const e = mk("div", "empty");
+        e.appendChild(mk("b", "", bmSearchTerm ? "No matching announcements" : (bmShowArchive ? "Nothing archived" : (bmShowPinned ? "Nothing pinned" : "No announcements yet"))));
+        e.appendChild(mk("p", "", bmSearchTerm ? "Try adjusting your search query." : (bmShowArchive ? "Archived announcements will appear here." : (bmShowPinned ? "Pinned announcements will appear here." : "Block matter announcements will be posted here."))));
+        box.appendChild(e);
+        return;
+    }
+    const wrap = mk("div", "bm-list");
+    list.forEach(a => wrap.appendChild(annCard(a)));
+    box.appendChild(wrap);
 }
+
 $("bm-search").addEventListener("input", e => { bmSearchTerm = e.target.value; renderBlockMatters(); });
+$("bm-filter").addEventListener("change", () => { bmFilter = $("bm-filter").value; renderBlockMatters(); });
 $("bm-archive-toggle").addEventListener("click", () => { bmShowArchive = !bmShowArchive; bmShowPinned = false; renderBlockMatters(); });
 $("bm-pinned-toggle").addEventListener("click", () => { bmShowPinned = !bmShowPinned; bmShowArchive = false; renderBlockMatters(); });
     
