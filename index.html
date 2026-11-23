@@ -1849,6 +1849,12 @@ html[data-theme="night"] .cmt-att-go { color: #fff; }
 .cmt-chip-x svg { width: 12px; height: 12px; pointer-events: none; }
 .cmt-chip-x:hover { color: var(--on-accent); background: var(--accent); transform: scale(1.1); }
 .cmt-chip-x:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+
+/* ===== Block Matters ===== */
+#sec-blockmatters h2 { margin-bottom: 18px; }
+#sec-blockmatters .coll { margin-bottom: 6px; }
+.bm-list { display: flex; flex-direction: column; gap: 16px; }
+.bm-list .ann-card { animation: none; }
         
 /* ================= NEW: reduced motion (keep this LAST) ================= */
 @media (prefers-reduced-motion: reduce) {
@@ -3416,6 +3422,12 @@ html.boot-app .topbar { animation: none !important; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/></svg>
         Announcements
     </button>
+
+<button type="button" data-section="blockmatters">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Block Matters
+</button>
+            
     <button type="button" data-section="calendar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         Calendar
@@ -3607,6 +3619,23 @@ html.boot-app .topbar { animation: none !important; }
             <div class="msg" id="ann-msg"></div>
         </section>
 
+<!-- Block Matters Section -->
+<section class="section hidden" id="sec-blockmatters">
+    <h2>BLOCK MATTERS</h2>
+    <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="bm-search" placeholder="Search block matters" autocomplete="off">
+    </div>
+    <div class="ann-tools">
+        <div class="ann-right">
+            <button type="button" class="btn sm ghost archive-btn" id="bm-pinned-toggle">Pinned</button>
+            <button type="button" class="btn sm ghost archive-btn" id="bm-archive-toggle">Archive</button>
+        </div>
+    </div>
+    <div id="bm-list"></div>
+    <div class="msg" id="bm-msg"></div>
+</section>
+        
         <!-- Calendar Section -->
         <section class="section hidden" id="sec-calendar">
             <h2>CALENDAR</h2>
@@ -3654,13 +3683,14 @@ html.boot-app .topbar { animation: none !important; }
             <form class="req-form" id="bin-form" novalidate>
                 <div class="edit-banner hidden" id="b-edit-banner">You're editing an announcement. Saving will mark it as edited by you.</div>
                 <div class="field"><input type="text" id="b-title" placeholder=" " maxlength="120"><label for="b-title">Topic</label></div>
-<div class="group-title">Course Title</div>
-<select id="b-course" aria-label="Course Title" data-code="1"></select>
+<select id="b-course" aria-label="Select course" data-code="1"></select>
+<select id="b-block" aria-label="Select block matter"></select>
                 <div class="field has-peek">
                     <input type="text" id="b-deadline" placeholder=" " readonly><label for="b-deadline">Deadline (optional)</label>
                     <button type="button" class="peek" id="b-deadline-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></button>
                     <div class="datepop hidden" id="b-deadline-pop"></div>
                 </div>
+                <div class="hidden">
                 <div class="group-title">Period (optional)</div>
                 <div class="row2">
                     <div class="field has-peek">
@@ -3675,6 +3705,7 @@ html.boot-app .topbar { animation: none !important; }
                     </div>
                 </div>
                 <p class="hint">If you set a period, both the beginning and end dates are needed.</p>
+                </div>
                 
                 <div class="fmt-bar" id="fmt-bar">
                     
@@ -4319,7 +4350,7 @@ const r = await callScript({ action: "resend", email: pending.email, password: p
         }
     }
 
-    const titles = { announcements: "Announcements", calendar: "Calendar", requests: "Requests", bin: "Announcement Bin", directory: "Directory", courses: "Courses", addcourse: "Add Course", hiddencourses: "Hidden Courses", dibs: "Dibs Cases", dibssystem: "Dibs System", officers: "Officers", addofficers: "Add Officers" };
+    const titles = { announcements: "Announcements", calendar: "Calendar", requests: "Requests", bin: "Announcement Bin", directory: "Directory", courses: "Courses", addcourse: "Add Course", hiddencourses: "Hidden Courses", dibs: "Dibs Cases", dibssystem: "Dibs System", officers: "Officers", addofficers: "Add Officers", blockmatters: "Block Matters" };
 const ADMIN_SECTIONS = ["bin", "directory", "addcourse", "hiddencourses", "dibssystem", "addofficers"];    
     
     function enterApp(email, tok, admin, startSection) {
@@ -4392,8 +4423,7 @@ function showSection(name, fromPop) {
         document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b.dataset.section === name));
         $("page-title").textContent = titles[name];
         if (name === "directory") { closeUser(); loadRepo(); }
-        if (name === "announcements" || name === "calendar" || name === "courses" || name === "hiddencourses") loadAnnouncements();
-        if (name === "bin" || name === "addcourse") loadMentionUsers();
+        if (name === "announcements" || name === "calendar" || name === "courses" || name === "hiddencourses" || name === "blockmatters") loadAnnouncements();        if (name === "bin" || name === "addcourse") loadMentionUsers();
         if (name === "dibs" || name === "dibssystem") { loadDibs(); if (name === "dibssystem") loadCourses(); }
         if (name === "courses" || name === "hiddencourses") loadCourses();
         if (name === "officers") loadOfficers();
@@ -5779,6 +5809,7 @@ function mentionPick(u) {
     function resetBinForm() {
         ["b-title", "b-text"].forEach(id => { $(id).value = ""; });
         fillBinCourses("");
+        $("b-block").value = ""; if ($("b-block")._sync) $("b-block")._sync();
         binDeadline = binStart = binEnd = ""; binDeadlineT = binStartT = binEndT = ""; editingId = ""; binStatus = ""; renderBinStatus(); mentionSel = []; binFiles = []; binCourseIds = []; updateBinCourseBtn();        renderFileList("b-file-list", binFiles, (idx) => { binFiles.splice(idx, 1); resetBinFormFileRender(); });
         pkDeadline.show(); pkStart.show(); pkEnd.show();
         pickers.forEach(p => p.close());
@@ -5801,8 +5832,9 @@ function mentionPick(u) {
         binCourseIds = courseList.filter(c => (c.announcementIds || []).includes(a.id)).map(c => c.id); updateBinCourseBtn();
         const sameTitle = courseList.filter(c => c.title === a.course);
         const pickC = sameTitle.find(c => binCourseIds.includes(c.id)) || sameTitle[0];
-        fillBinCourses(pickC ? pickC.id : (a.course ? "txt:" + a.course : ""));
-        loadPollIntoForm(a.poll);
+        const blockOnly = a.block && a.course === BLOCK_LABEL[a.block] && !pickC;
+        fillBinCourses(pickC ? pickC.id : (a.course && !blockOnly ? "txt:" + a.course : ""));
+        $("b-block").value = a.block || ""; if ($("b-block")._sync) $("b-block")._sync();        loadPollIntoForm(a.poll);
         binMode(); syncFields();
         showSection("bin");
         window.scrollTo(0, 0);
@@ -5821,10 +5853,11 @@ function mentionPick(u) {
   let bad = false;
   if (!title) { fieldError("b-title", "Required"); bad = true; }
   if (!text) { $("b-text").closest(".field").classList.add("invalid"); bad = true; }
-    if (!course) { dropError("b-course", true); bad = true; }
-  else if (binStatus && !selCourseId) { dropError("b-course", true); setMessage(bm, "Pick a course from the list so only its students can see this class status.", ERR); bad = true; }
+    const block = $("b-block").value;
+    if (!course && !block) { dropError("b-course", true); dropError("b-block", true); bad = true; }  else if (binStatus && !selCourseId) { dropError("b-course", true); setMessage(bm, "Pick a course from the list so only its students can see this class status.", ERR); bad = true; }
     if (!!binStart !== !!binEnd) { fieldError(binStart ? "b-pend" : "b-pstart", "Required"); bad = true; }
     if (bad) return;
+    if (!course && block) course = BLOCK_LABEL[block];
   const courseIds = binCourseIds.slice();
   if (binStatus && selCourseId && !courseIds.includes(selCourseId)) courseIds.push(selCourseId);        
         const poll = readPoll();
@@ -5854,8 +5887,7 @@ function mentionPick(u) {
                 deadlineTime: binDeadline ? (binDeadlineT || "23:59") : "",
                 periodStartTime: binStart ? (binStartT || "23:59") : "",
                 periodEndTime: binEnd ? (binEndT || "23:59") : "",
-                message: text, mentions, everyone, courseIds, mode: binStatus };
-            if (poll) payload.poll = poll;
+                message: text, mentions, everyone, courseIds, mode: binStatus, block };            if (poll) payload.poll = poll;
             if (binFiles.length) payload.files = binFiles;
             if (wasEdit) payload.id = editingId;
             const r = await authCall(wasEdit ? "edit_announcement" : "post_announcement", payload);
@@ -6040,7 +6072,7 @@ pre.className = "file-text";
                 if (editingId === a.id) resetBinForm();
                 annList = annList.filter(x => x.id !== a.id);
                 courseList.forEach(c => { c.announcementIds = (c.announcementIds || []).filter(x => x !== a.id); });
-                renderAnnouncements(); renderCalendar();
+                renderAnnouncements(); renderCalendar(); renderBlockMatters();
                 closeAnnModal();
                 return;
             }
@@ -6162,6 +6194,7 @@ pre.className = "file-text";
     dd.classList.add("no-anim");
     renderAnnouncements();
     renderCalendar();
+    renderBlockMatters();
     if (openAnnId && !$("ann-modal").classList.contains("hidden")) {
         const a = annList.find(x => x.id === openAnnId);
         if (a) renderAnnModalStatus(a);
@@ -6959,7 +6992,7 @@ cell.setAttribute("aria-label", d + " " + MONTHS[dlM] + (list.length ? ", " + li
                     deadline: normIso(a.deadline), periodStart: normIso(a.periodStart), periodEnd: normIso(a.periodEnd)
                 }));
                 pins = new Set(annList.filter(a => a.pinned).map(a => a.id));
-                renderAnnouncements(); syncCalSel(true); renderCalendar();
+                renderAnnouncements(); syncCalSel(true); renderCalendar(); renderBlockMatters();
             }
                         else { ["ann-msg", "dl-msg"].forEach(id => setMessage($(id), r.message, ERR)); renderAnnouncements(); }
         } catch (err) {
@@ -8187,8 +8220,17 @@ setInterval(() => {
         sync();
     }
     document.addEventListener("click", e => drops.forEach(d => { if (!d.wrap.contains(e.target)) d.close(); }));
-["dl-month", "dl-year", "ann-filter", "c-sem", "c-ay", "d-course", "dibs-e-by", "b-course", "of-sem", "of-ay"].forEach(id => enhanceSelect($(id)));
-    function applyTheme(t) {
+
+    const BLOCKS = [["external","External Matters"],["internal","Internal Matters"],["academic","Academic Matters"],["wellness","Wellness and Activities"],["social","Social Media"]];
+const BLOCK_LABEL = {}; BLOCKS.forEach(([v, l]) => { BLOCK_LABEL[v] = l; });
+(function () {
+    const s = $("b-block");
+    const o0 = mk("option", "", "Select block matter"); o0.value = ""; s.appendChild(o0);
+    BLOCKS.forEach(([v, l]) => { const o = mk("option", "", l); o.value = v; s.appendChild(o); });
+})();
+$("b-block").addEventListener("change", binDirty);
+    
+["dl-month", "dl-year", "ann-filter", "c-sem", "c-ay", "d-course", "dibs-e-by", "b-course", "b-block", "of-sem", "of-ay"].forEach(id => enhanceSelect($(id)));    function applyTheme(t) {
         if (t !== "classic" && t !== "night") t = "light";
         if (t === "light") document.documentElement.removeAttribute("data-theme");
         else document.documentElement.setAttribute("data-theme", t);
@@ -9390,6 +9432,43 @@ const modalObserver = new MutationObserver(muts => {
 document.querySelectorAll(".modal, .datepop").forEach(el =>
     modalObserver.observe(el, { attributes: true, attributeFilter: ["class"] }));
 
+/* ===== BLOCK MATTERS ===== */
+let bmShowArchive = false, bmShowPinned = false, bmSearchTerm = "";
+const BM_GROUPS = [["external", "External"], ["internal", "Internal"], ["academic", "Academic"], ["wellness", "Wellness"], ["social", "Social Media"]];
+
+function bmVisible(block) {
+    return annList.filter(a => {
+        if (a.block !== block) return false;
+        if (!!a.myArchived !== bmShowArchive) return false;
+        if (bmShowPinned && !pins.has(a.id)) return false;
+        if (!bmShowPinned && !bmShowArchive && pins.has(a.id)) return false;
+        if (!bmSearchTerm) return true;
+        return isFuzzyMatch([a.title, a.course, a.message, a.author].join(" "), bmSearchTerm);
+    });
+}
+function renderBlockMatters() {
+    const box = $("bm-list"); if (!box) return;
+    box.textContent = "";
+    const all = annList.filter(a => a.block);
+    $("bm-archive-toggle").textContent = bmShowArchive ? "\u2190 Back to block matters" : "Archive (" + all.filter(a => a.myArchived).length + ")";
+    $("bm-pinned-toggle").textContent = bmShowPinned ? "\u2190 Back to block matters" : "Pinned (" + all.filter(a => pins.has(a.id) && !a.myArchived).length + ")";
+    BM_GROUPS.forEach(([key, label]) => {
+        const list = bmVisible(key), nodes = [];
+        if (bmSearchTerm && list.length) collOpen["bm_" + key] = true;
+        if (!list.length) {
+            nodes.push(mk("p", "repo-count", bmSearchTerm ? "No matching announcements." : (bmShowArchive ? "Nothing archived." : (bmShowPinned ? "Nothing pinned." : "No announcements yet."))));
+        } else {
+            const wrap = mk("div", "bm-list");
+            list.forEach(a => wrap.appendChild(annCard(a)));
+            nodes.push(wrap);
+        }
+        box.appendChild(collapsible("bm_" + key, label, list.length, nodes));
+    });
+}
+$("bm-search").addEventListener("input", e => { bmSearchTerm = e.target.value; renderBlockMatters(); });
+$("bm-archive-toggle").addEventListener("click", () => { bmShowArchive = !bmShowArchive; bmShowPinned = false; renderBlockMatters(); });
+$("bm-pinned-toggle").addEventListener("click", () => { bmShowPinned = !bmShowPinned; bmShowArchive = false; renderBlockMatters(); });
+    
     const saved = sessionStorage.getItem("userEmail");
     const savedToken = sessionStorage.getItem("token");
     if (saved && savedToken) enterApp(saved, savedToken, sessionStorage.getItem("isAdmin") === "1", sessionStorage.getItem("section"));    else sessionStorage.removeItem("userEmail");
